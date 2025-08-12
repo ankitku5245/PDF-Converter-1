@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Converter App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.16.0/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .converter-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px dashed #ddd;
+            border-radius: 5px;
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 5px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            background-color: #f0f8ff;
+            border-color: #2980b9;
+        }
+        .upload-area p {
+            margin: 0;
+            color: #7f8c8d;
+        }
+        .upload-area i {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        #fileInput {
+            display: none;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .file-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            display: none;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .options {
+            margin: 20px 0;
+        }
+        .option-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Converter App</h1>
+        
+        <div class="converter-section">
+            <h2>Convert to PDF</h2>
+            <p>Upload your file and convert it to PDF format.</p>
+            
+            <div class="upload-area" id="uploadArea">
+                <i>📁</i>
+                <p>Click to browse or drag and drop your file here</p>
+                <input type="file" id="fileInput">
+            </div>
+            
+            <div class="file-info" id="fileInfo">
+                <strong>Selected file:</strong> <span id="fileName"></span>
+                <span id="fileSize"></span>
+            </div>
+            
+            <div class="options">
+                <div class="option-group">
+                    <label for="outputName">Output PDF name:</label>
+                    <input type="text" id="outputName" placeholder="output.pdf">
+                </div>
+                
+                <div class="option-group">
+                    <label for="pageSize">Page size:</label>
+                    <select id="pageSize">
+                        <option value="A4">A4</option>
+                        <option value="Letter">Letter</option>
+                        <option value="Legal">Legal</option>
+                        <option value="A3">A3</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label for="pageOrientation">Orientation:</label>
+                    <select id="pageOrientation">
+                        <option value="portrait">Portrait</option>
+                        <option value="landscape">Landscape</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button id="convertBtn" disabled>Convert to PDF</button>
+            
+            <div class="status" id="status"></div>
+        </div>
+        
+        <footer>
+            <p>PDF Converter App &copy; 2023 | Note: Complex conversions may require server-side processing</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const convertBtn = document.getElementById('convertBtn');
+        const statusDiv = document.getElementById('status');
+        const outputName = document.getElementById('outputName');
+        
+        // Supported file types for client-side conversion
+        const supportedTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/bmp',
+            'image/webp',
+            'image/tiff',
+            'text/plain',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        
+        // Event listeners
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.backgroundColor = '#f0f8ff';
+            uploadArea.style.borderColor = '#2980b9';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.backgroundColor = '';
+            uploadArea.style.borderColor = '#3498db';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.backgroundColor = '';
+            uploadArea.style.borderColor = '#3498db';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect({ target: fileInput });
+            }
+        });
+        
+        convertBtn.addEventListener('click', convertToPDF);
+        
+        // Functions
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            
+            if (!file) return;
+            
+            // Display file info
+            fileName.textContent = file.name;
+            fileSize.textContent = ` (${formatFileSize(file.size)})`;
+            fileInfo.style.display = 'block';
+            
+            // Set default output name
+            const baseName = file.name.lastIndexOf('.') > 0 ? 
+                file.name.substring(0, file.name.lastIndexOf('.')) : file.name;
+            outputName.value = `${baseName}.pdf`;
+            
+            // Check if file type is supported
+            if (supportedTypes.includes(file.type)) {
+                convertBtn.disabled = false;
+                statusDiv.style.display = 'none';
+            } else {
+                convertBtn.disabled = true;
+                showStatus(`File type ${file.type} is not supported for client-side conversion.`, 'error');
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+        }
+        
+        async function convertToPDF() {
+            const file = fileInput.files[0];
+            if (!file) return;
+            
+            try {
+                convertBtn.disabled = true;
+                showStatus('Converting... Please wait.', '');
+                
+                // Create a new PDF document
+                const { PDFDocument, rgb } = PDFLib;
+                const pdfDoc = await PDFDocument.create();
+                
+                // Set metadata
+                pdfDoc.setTitle(file.name);
+                pdfDoc.setAuthor('PDF Converter App');
+                
+                // Get page options
+                const pageSize = document.getElementById('pageSize').value;
+                const orientation = document.getElementById('pageOrientation').value;
+                
+                // Handle different file types
+                if (file.type.startsWith('image/')) {
+                    await convertImageToPDF(pdfDoc, file, pageSize, orientation);
+                } else if (file.type === 'text/plain') {
+                    await convertTextToPDF(pdfDoc, file, pageSize, orientation);
+                } else if (file.type.includes('msword') || file.type.includes('wordprocessingml')) {
+                    showStatus('Word document conversion requires server-side processing.', 'error');
+                    return;
+                }
+                
+                // Save the PDF
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                
+                // Download the PDF
+                saveAs(blob, outputName.value || 'converted.pdf');
+                
+                showStatus('Conversion successful!', 'success');
+            } catch (error) {
+                console.error('Conversion error:', error);
+                showStatus('Conversion failed: ' + error.message, 'error');
+            } finally {
+                convertBtn.disabled = false;
+            }
+        }
+        
+        async function convertImageToPDF(pdfDoc, imageFile, pageSize, orientation) {
+            const { PDFDocument, rgb } = PDFLib;
+            
+            // Read the image file
+            const arrayBuffer = await readFileAsArrayBuffer(imageFile);
+            
+            // Embed the image in the PDF
+            let image;
+            try {
+                if (imageFile.type === 'image/jpeg') {
+                    image = await pdfDoc.embedJpg(arrayBuffer);
+                } else if (imageFile.type === 'image/png') {
+                    image = await pdfDoc.embedPng(arrayBuffer);
+                } else {
+                    throw new Error('Unsupported image format for direct embedding');
+                }
+            } catch (error) {
+                throw new Error('Failed to embed image: ' + error.message);
+            }
+            
+            // Add a page with the appropriate dimensions
+            const page = pdfDoc.addPage(getPageSize(pageSize, orientation));
+            
+            // Draw the image on the page
+            page.drawImage(image, {
+                x: 0,
+                y: 0,
+                width: page.getWidth(),
+                height: page.getHeight(),
+            });
+        }
+        
+        async function convertTextToPDF(pdfDoc, textFile, pageSize, orientation) {
+            const { PDFDocument, rgb } = PDFLib;
+            
+            // Read the text file
+            const text = await readFileAsText(textFile);
+            
+            // Add a page
+            const page = pdfDoc.addPage(getPageSize(pageSize, orientation));
+            
+            // Draw the text on the page
+            page.drawText(text, {
+                x: 50,
+                y: page.getHeight() - 50,
+                size: 12,
+                color: rgb(0, 0, 0),
+                lineHeight: 15,
+                maxWidth: page.getWidth() - 100,
+            });
+        }
+        
+        function getPageSize(size, orientation) {
+            const sizes = {
+                'A4': [595.28, 841.89],
+                'Letter': [612, 792],
+                'Legal': [612, 1008],
+                'A3': [841.89, 1190.55]
+            };
+            
+            let dimensions = sizes[size] || sizes['A4'];
+            if (orientation === 'landscape') {
+                dimensions = [dimensions[1], dimensions[0]];
+            }
+            
+            return dimensions;
+        }
+        
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+    </script>
+</body>
+</html>
