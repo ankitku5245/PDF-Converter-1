@@ -4,101 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Converter App</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.16.0/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background-color: #f5f5f5;
             color: #333;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        header {
+            background-color: #4285f4;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
+            margin: 0;
+            font-size: 24px;
         }
-        .converter-section {
-            margin-bottom: 30px;
+        .card {
+            background-color: white;
+            border-radius: 8px;
             padding: 20px;
-            border: 1px dashed #ddd;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .upload-area {
-            border: 2px dashed #3498db;
-            border-radius: 5px;
+            border: 2px dashed #4285f4;
+            border-radius: 8px;
             padding: 30px;
             text-align: center;
-            margin-bottom: 20px;
             cursor: pointer;
+            margin-bottom: 20px;
             transition: all 0.3s;
         }
         .upload-area:hover {
-            background-color: #f0f8ff;
-            border-color: #2980b9;
-        }
-        .upload-area p {
-            margin: 0;
-            color: #7f8c8d;
+            background-color: #f0f7ff;
         }
         .upload-area i {
             font-size: 48px;
-            color: #3498db;
-            margin-bottom: 15px;
+            color: #4285f4;
+            margin-bottom: 10px;
         }
         #fileInput {
             display: none;
         }
-        button {
-            background-color: #3498db;
+        .btn {
+            background-color: #4285f4;
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
         }
-        button:hover {
-            background-color: #2980b9;
+        .btn:hover {
+            background-color: #3367d6;
         }
-        button:disabled {
-            background-color: #95a5a6;
+        .btn:disabled {
+            background-color: #cccccc;
             cursor: not-allowed;
         }
-        .file-info {
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 20px;
-            padding: 10px;
-            background-color: #ecf0f1;
-            border-radius: 5px;
-            display: none;
         }
-        .status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
+        .preview-item {
+            position: relative;
+            width: 100px;
+            height: 140px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
         }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
+        .preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255,0,0,0.7);
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
         .options {
-            margin: 20px 0;
+            margin-top: 20px;
         }
         .option-group {
             margin-bottom: 15px;
@@ -106,300 +118,268 @@
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: 500;
         }
         select, input[type="text"] {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            box-sizing: border-box;
+        }
+        .ad-container {
+            margin: 20px 0;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            border-radius: 4px;
         }
         footer {
             text-align: center;
             margin-top: 30px;
-            color: #7f8c8d;
+            color: #777;
             font-size: 14px;
         }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .card {
+                padding: 15px;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google AdMob script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_ADMOB_PUBLISHER_ID"
+            crossorigin="anonymous"></script>
 </head>
 <body>
+    <header>
+        <h1>PDF Converter</h1>
+    </header>
+    
     <div class="container">
-        <h1>PDF Converter App</h1>
-        
-        <div class="converter-section">
-            <h2>Convert to PDF</h2>
-            <p>Upload your file and convert it to PDF format.</p>
+        <div class="card">
+            <h2>Convert Images to PDF</h2>
+            <p>Upload your images and convert them to a single PDF document.</p>
             
             <div class="upload-area" id="uploadArea">
-                <i>📁</i>
-                <p>Click to browse or drag and drop your file here</p>
-                <input type="file" id="fileInput">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload images or drag and drop</p>
+                <input type="file" id="fileInput" accept="image/*" multiple>
             </div>
             
-            <div class="file-info" id="fileInfo">
-                <strong>Selected file:</strong> <span id="fileName"></span>
-                <span id="fileSize"></span>
-            </div>
+            <div class="preview-container" id="previewContainer"></div>
             
             <div class="options">
                 <div class="option-group">
-                    <label for="outputName">Output PDF name:</label>
-                    <input type="text" id="outputName" placeholder="output.pdf">
+                    <label for="pdfName">PDF File Name:</label>
+                    <input type="text" id="pdfName" placeholder="output.pdf" value="output.pdf">
                 </div>
                 
                 <div class="option-group">
-                    <label for="pageSize">Page size:</label>
+                    <label for="pageSize">Page Size:</label>
                     <select id="pageSize">
-                        <option value="A4">A4</option>
-                        <option value="Letter">Letter</option>
-                        <option value="Legal">Legal</option>
-                        <option value="A3">A3</option>
+                        <option value="a4">A4</option>
+                        <option value="letter">Letter</option>
+                        <option value="legal">Legal</option>
                     </select>
                 </div>
                 
                 <div class="option-group">
-                    <label for="pageOrientation">Orientation:</label>
+                    <label for="pageOrientation">Page Orientation:</label>
                     <select id="pageOrientation">
                         <option value="portrait">Portrait</option>
                         <option value="landscape">Landscape</option>
                     </select>
                 </div>
+                
+                <div class="option-group">
+                    <label for="imageFit">Image Fit:</label>
+                    <select id="imageFit">
+                        <option value="fit">Fit to page</option>
+                        <option value="fill">Fill page</option>
+                        <option value="original">Original size</option>
+                    </select>
+                </div>
             </div>
             
-            <button id="convertBtn" disabled>Convert to PDF</button>
-            
-            <div class="status" id="status"></div>
+            <button id="convertBtn" class="btn" disabled>Convert to PDF</button>
         </div>
         
-        <footer>
-            <p>PDF Converter App &copy; 2023 | Note: Complex conversions may require server-side processing</p>
-        </footer>
+        <!-- AdMob Banner Ad -->
+        <div class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-YOUR_ADMOB_PUBLISHER_ID"
+                 data-ad-slot="YOUR_ADMOB_AD_SLOT"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
     </div>
-
+    
+    <footer>
+        <p>PDF Converter App &copy; 2023</p>
+    </footer>
+    
+    <!-- Include jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+        
         // DOM elements
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
-        const fileSize = document.getElementById('fileSize');
+        const previewContainer = document.getElementById('previewContainer');
         const convertBtn = document.getElementById('convertBtn');
-        const statusDiv = document.getElementById('status');
-        const outputName = document.getElementById('outputName');
+        const pdfNameInput = document.getElementById('pdfName');
+        const pageSizeSelect = document.getElementById('pageSize');
+        const pageOrientationSelect = document.getElementById('pageOrientation');
+        const imageFitSelect = document.getElementById('imageFit');
         
-        // Supported file types for client-side conversion
-        const supportedTypes = [
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'image/bmp',
-            'image/webp',
-            'image/tiff',
-            'text/plain',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ];
+        // Array to store uploaded images
+        let uploadedImages = [];
         
         // Event listeners
         uploadArea.addEventListener('click', () => fileInput.click());
         
-        fileInput.addEventListener('change', handleFileSelect);
-        
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            uploadArea.style.backgroundColor = '#f0f8ff';
-            uploadArea.style.borderColor = '#2980b9';
+            uploadArea.style.backgroundColor = '#f0f7ff';
         });
         
         uploadArea.addEventListener('dragleave', () => {
             uploadArea.style.backgroundColor = '';
-            uploadArea.style.borderColor = '#3498db';
         });
         
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.style.backgroundColor = '';
-            uploadArea.style.borderColor = '#3498db';
-            
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                handleFileSelect({ target: fileInput });
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                handleFiles(fileInput.files);
             }
         });
         
         convertBtn.addEventListener('click', convertToPDF);
         
-        // Functions
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            
-            if (!file) return;
-            
-            // Display file info
-            fileName.textContent = file.name;
-            fileSize.textContent = ` (${formatFileSize(file.size)})`;
-            fileInfo.style.display = 'block';
-            
-            // Set default output name
-            const baseName = file.name.lastIndexOf('.') > 0 ? 
-                file.name.substring(0, file.name.lastIndexOf('.')) : file.name;
-            outputName.value = `${baseName}.pdf`;
-            
-            // Check if file type is supported
-            if (supportedTypes.includes(file.type)) {
-                convertBtn.disabled = false;
-                statusDiv.style.display = 'none';
-            } else {
-                convertBtn.disabled = true;
-                showStatus(`File type ${file.type} is not supported for client-side conversion.`, 'error');
-            }
-        }
-        
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        function showStatus(message, type) {
-            statusDiv.textContent = message;
-            statusDiv.className = 'status ' + type;
-            statusDiv.style.display = 'block';
-        }
-        
-        async function convertToPDF() {
-            const file = fileInput.files[0];
-            if (!file) return;
-            
-            try {
-                convertBtn.disabled = true;
-                showStatus('Converting... Please wait.', '');
-                
-                // Create a new PDF document
-                const { PDFDocument, rgb } = PDFLib;
-                const pdfDoc = await PDFDocument.create();
-                
-                // Set metadata
-                pdfDoc.setTitle(file.name);
-                pdfDoc.setAuthor('PDF Converter App');
-                
-                // Get page options
-                const pageSize = document.getElementById('pageSize').value;
-                const orientation = document.getElementById('pageOrientation').value;
-                
-                // Handle different file types
+        // Handle uploaded files
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 if (file.type.startsWith('image/')) {
-                    await convertImageToPDF(pdfDoc, file, pageSize, orientation);
-                } else if (file.type === 'text/plain') {
-                    await convertTextToPDF(pdfDoc, file, pageSize, orientation);
-                } else if (file.type.includes('msword') || file.type.includes('wordprocessingml')) {
-                    showStatus('Word document conversion requires server-side processing.', 'error');
-                    return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imgData = e.target.result;
+                        uploadedImages.push(imgData);
+                        createPreview(imgData);
+                        updateConvertButton();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+        
+        // Create image preview
+        function createPreview(imgData) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            
+            const img = document.createElement('img');
+            img.className = 'preview-img';
+            img.src = imgData;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = uploadedImages.indexOf(imgData);
+                if (index > -1) {
+                    uploadedImages.splice(index, 1);
+                }
+                previewItem.remove();
+                updateConvertButton();
+            });
+            
+            previewItem.appendChild(img);
+            previewItem.appendChild(removeBtn);
+            previewContainer.appendChild(previewItem);
+        }
+        
+        // Update convert button state
+        function updateConvertButton() {
+            convertBtn.disabled = uploadedImages.length === 0;
+        }
+        
+        // Convert images to PDF
+        function convertToPDF() {
+            if (uploadedImages.length === 0) return;
+            
+            const pdfName = pdfNameInput.value || 'output.pdf';
+            const pageSize = pageSizeSelect.value;
+            const pageOrientation = pageOrientationSelect.value;
+            const imageFit = imageFitSelect.value;
+            
+            // Create new PDF document
+            const pdf = new jsPDF({
+                orientation: pageOrientation,
+                unit: 'mm',
+                format: pageSize
+            });
+            
+            // Add each image to the PDF
+            for (let i = 0; i < uploadedImages.length; i++) {
+                if (i > 0) {
+                    pdf.addPage();
                 }
                 
-                // Save the PDF
-                const pdfBytes = await pdfDoc.save();
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const img = new Image();
+                img.src = uploadedImages[i];
                 
-                // Download the PDF
-                saveAs(blob, outputName.value || 'converted.pdf');
+                // Calculate dimensions based on selected fit option
+                let imgWidth, imgHeight;
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
                 
-                showStatus('Conversion successful!', 'success');
-            } catch (error) {
-                console.error('Conversion error:', error);
-                showStatus('Conversion failed: ' + error.message, 'error');
-            } finally {
-                convertBtn.disabled = false;
-            }
-        }
-        
-        async function convertImageToPDF(pdfDoc, imageFile, pageSize, orientation) {
-            const { PDFDocument, rgb } = PDFLib;
-            
-            // Read the image file
-            const arrayBuffer = await readFileAsArrayBuffer(imageFile);
-            
-            // Embed the image in the PDF
-            let image;
-            try {
-                if (imageFile.type === 'image/jpeg') {
-                    image = await pdfDoc.embedJpg(arrayBuffer);
-                } else if (imageFile.type === 'image/png') {
-                    image = await pdfDoc.embedPng(arrayBuffer);
-                } else {
-                    throw new Error('Unsupported image format for direct embedding');
+                if (imageFit === 'original') {
+                    // Convert pixels to mm (assuming 96 DPI)
+                    imgWidth = img.width * 0.264583;
+                    imgHeight = img.height * 0.264583;
+                } else if (imageFit === 'fill') {
+                    imgWidth = pageWidth;
+                    imgHeight = pageHeight;
+                } else { // fit
+                    const ratio = Math.min(
+                        pageWidth / img.width,
+                        pageHeight / img.height
+                    );
+                    imgWidth = img.width * ratio;
+                    imgHeight = img.height * ratio;
                 }
-            } catch (error) {
-                throw new Error('Failed to embed image: ' + error.message);
+                
+                // Center the image on the page
+                const x = (pageWidth - imgWidth) / 2;
+                const y = (pageHeight - imgHeight) / 2;
+                
+                pdf.addImage(uploadedImages[i], 'JPEG', x, y, imgWidth, imgHeight);
             }
             
-            // Add a page with the appropriate dimensions
-            const page = pdfDoc.addPage(getPageSize(pageSize, orientation));
+            // Save the PDF
+            pdf.save(pdfName);
             
-            // Draw the image on the page
-            page.drawImage(image, {
-                x: 0,
-                y: 0,
-                width: page.getWidth(),
-                height: page.getHeight(),
-            });
-        }
-        
-        async function convertTextToPDF(pdfDoc, textFile, pageSize, orientation) {
-            const { PDFDocument, rgb } = PDFLib;
-            
-            // Read the text file
-            const text = await readFileAsText(textFile);
-            
-            // Add a page
-            const page = pdfDoc.addPage(getPageSize(pageSize, orientation));
-            
-            // Draw the text on the page
-            page.drawText(text, {
-                x: 50,
-                y: page.getHeight() - 50,
-                size: 12,
-                color: rgb(0, 0, 0),
-                lineHeight: 15,
-                maxWidth: page.getWidth() - 100,
-            });
-        }
-        
-        function getPageSize(size, orientation) {
-            const sizes = {
-                'A4': [595.28, 841.89],
-                'Letter': [612, 792],
-                'Legal': [612, 1008],
-                'A3': [841.89, 1190.55]
-            };
-            
-            let dimensions = sizes[size] || sizes['A4'];
-            if (orientation === 'landscape') {
-                dimensions = [dimensions[1], dimensions[0]];
-            }
-            
-            return dimensions;
-        }
-        
-        function readFileAsArrayBuffer(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
-            });
-        }
-        
-        function readFileAsText(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsText(file);
-            });
+            // Show a success message (you could replace this with a more elegant notification)
+            alert('PDF created successfully!');
         }
     </script>
 </body>
